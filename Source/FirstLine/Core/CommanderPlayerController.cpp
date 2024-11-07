@@ -4,6 +4,10 @@
 #include "CommanderPlayerController.h"
 
 #include "InputActionValue.h"
+#include "EnhancedInputComponent.h"
+#include "Interface/ISelectable.h"
+#include "Engine/World.h"
+#include "Engine/LocalPlayer.h" // For DeprojectScreenToWorld
 
 ACommanderPlayerController::ACommanderPlayerController()
 {
@@ -12,6 +16,9 @@ ACommanderPlayerController::ACommanderPlayerController()
 	bEnableMouseOverEvents = true;
     
 	PrimaryActorTick.bCanEverTick = true;
+
+	
+	SelectionComponent = CreateDefaultSubobject<USelectionComponent>(TEXT("SelectionComponent"));
 }
 
 void ACommanderPlayerController::Tick(float DeltaTime)
@@ -29,6 +36,14 @@ void ACommanderPlayerController::Tick(float DeltaTime)
 		MovementVector = FVector2D::ZeroVector;
 	}
     
+	if (bIsSelecting)
+	{
+		FVector2D CurrentMousePos;
+		if (GetMousePosition(CurrentMousePos.X, CurrentMousePos.Y))
+		{
+			OnSelectionUpdated(CurrentMousePos);
+		}
+	}
 }
 
 void ACommanderPlayerController::MoveCameraByInput(const FVector2D& Value)
@@ -63,3 +78,63 @@ void ACommanderPlayerController::EdgeScroll()
 	}
 }
 
+void ACommanderPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+    
+}
+
+void ACommanderPlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+	// Note: Bind inputs in Blueprint using Enhanced Input System
+}
+
+void ACommanderPlayerController::OnSelectPressed()
+{
+	if (!IsLocalController()) return;
+
+	bIsSelecting = true;
+	FVector2D MousePos;
+	if (GetMousePosition(MousePos.X, MousePos.Y))
+	{
+		SelectionStart = MousePos;
+		OnSelectionStarted(MousePos);
+	}
+}
+
+void ACommanderPlayerController::OnSelectReleased()
+{
+	if (!IsLocalController() || !bIsSelecting || !SelectionComponent) return;
+
+	FVector2D CurrentMousePos;
+	if (!GetMousePosition(CurrentMousePos.X, CurrentMousePos.Y))
+		return;
+
+	// Convert screen positions to world space
+	FVector WorldStart, WorldStartDir;
+	FVector WorldEnd, WorldEndDir;
+	
+	// Get world positions by deprojecting screen coordinates
+	DeprojectScreenPositionToWorld(
+		SelectionStart.X, SelectionStart.Y,
+		WorldStart, WorldStartDir);
+		
+	DeprojectScreenPositionToWorld(
+		CurrentMousePos.X, CurrentMousePos.Y,
+		WorldEnd, WorldEndDir);
+
+	float DragDistance = FVector2D::Distance(SelectionStart, CurrentMousePos);
+    
+	if (DragDistance < 3.0f)
+	{
+		SelectionComponent->HandleClickSelection(WorldEnd);
+	}
+	else
+	{
+		SelectionComponent->HandleBoxSelection(WorldStart, WorldEnd);
+	}
+
+	bIsSelecting = false;
+	OnSelectionEnded();
+}
