@@ -6,6 +6,8 @@
 #include "Components/ActorComponent.h"
 #include "SelectionComponent.generated.h"
 
+class ACommanderHUD;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSelectionChanged, const TArray<AActor*>&, SelectedActors);
 
 /**
@@ -13,29 +15,30 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSelectionChanged, const TArray<AA
  * Handles both single-unit and box selection
  * Uses physics traces to find selectable units
  */
-UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class FIRSTLINE_API USelectionComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
 	USelectionComponent();
+	virtual void BeginPlay() override;
 
 	/** Handles single-click selection at a world location */
 	UFUNCTION(BlueprintCallable, Category = "Selection")
-	void HandleClickSelection(const FVector& WorldLocation);
+	void StartSelection(const FVector2D& ScreenPosition);
 
 	/** Handles box selection between two world points */
 	UFUNCTION(BlueprintCallable, Category = "Selection")
-	void HandleBoxSelection(const FVector& BoxStart, const FVector& BoxEnd);
-
-	/** Updates the current selection, handling selection/deselection events */
-	UFUNCTION(BlueprintCallable, Category = "Selection")
-	void UpdateSelection(const TArray<AActor*>& NewSelection);
+	void UpdateSelection(const FVector2D& CurrentScreenPos);
 
 	/** Clears the current selection */
 	UFUNCTION(BlueprintCallable, Category = "Selection")
-	void ClearSelection();
+	void EndSelection();
+
+	/** Updates the current selection, handling selection/deselection events */
+	UFUNCTION(BlueprintCallable, Category = "Selection")
+	void UpdateSelectedActors(const TArray<AActor*>& ActorsToSelect);
 
 	/** Returns the currently selected actors */
 	UFUNCTION(BlueprintPure, Category = "Selection")
@@ -50,9 +53,9 @@ private:
 	UPROPERTY()
 	TArray<AActor*> SelectedActors;
 
-	/** Performs a box trace to find selectable actors */
-	bool GetSelectableActorsInBox(const FVector& BoxStart, const FVector& BoxEnd, TArray<AActor*>& OutActors) const;
+	UPROPERTY()
+	TObjectPtr<ACommanderHUD> CachedHUD;
 
-	/** Performs a line trace to find a selectable actor */
-	bool GetSelectableActorAtLocation(const FVector& Location, AActor*& OutActor) const;
+	FVector2D SelectionStart;
+	FVector2D CurrentPosition;
 };

@@ -4,8 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-#include "Interface/SelectionComponent.h"
 #include "CommanderPlayerController.generated.h"
+
+class USelectionComponent;
 
 /**
  * RTS-style player controller that handles camera movement and unit selection input
@@ -38,21 +39,13 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 
-	// Blueprint events for selection box visualization
-	UFUNCTION(BlueprintImplementableEvent, Category = "Selection")
-	void OnSelectionStarted(const FVector2D& ScreenPosition);
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "Selection")
-	void OnSelectionUpdated(const FVector2D& CurrentScreenPosition);
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "Selection")
-	void OnSelectionEnded();
-
 	// Input handlers - to be bound in Blueprint using Enhanced Input
 	UFUNCTION(BlueprintCallable)
 	void OnSelectPressed();
 	UFUNCTION(BlueprintCallable) 
 	void OnSelectReleased();
+	UFUNCTION(BlueprintCallable)
+	void OnSelectUpdated();
 
 	/** Component that handles all selection logic */
 	UPROPERTY(VisibleAnywhere)
