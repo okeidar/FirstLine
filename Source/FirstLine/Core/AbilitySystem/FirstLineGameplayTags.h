@@ -1,6 +1,4 @@
-﻿
-
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
@@ -16,11 +14,17 @@ public:
 	static const FFirstLineGameplayTags& Get() { return GameplayTags; }
 	static void InitializeNativeTags();
 
-	
+	// Command hierarchy
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag Command;  // Root tag for all commands
+
+	// Unit capability hierarchy
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag Unit;     // Root tag for unit capabilities
+
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayTag Ability_Cooldown;
     
-	
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayTag Ability_AutoRetrigger;
 
