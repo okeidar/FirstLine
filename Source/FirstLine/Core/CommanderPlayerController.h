@@ -3,10 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Commands/CommandTypes.h"
 #include "GameFramework/PlayerController.h"
 #include "CommanderPlayerController.generated.h"
 
 class USelectionComponent;
+class UCommandSystemComponent;
 
 /**
  * RTS-style player controller that handles camera movement and unit selection input
@@ -46,10 +48,23 @@ protected:
 	void OnSelectReleased();
 	UFUNCTION(BlueprintCallable)
 	void OnSelectUpdated();
+	UFUNCTION(BlueprintCallable)
+	void OnCommandPressed();
 
 	/** Component that handles all selection logic */
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USelectionComponent> SelectionComponent;
+
+	/** Component that handles command system logic */
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UCommandSystemComponent> CommandSystemComponent;
+
+	// Called every frame to update cursor based on command context
+	void UpdateCommandContext();
+
+	// Cache the last command data to avoid unnecessary cursor updates
+	UPROPERTY()
+	FCommandData LastCommandData;
 
 private:
 

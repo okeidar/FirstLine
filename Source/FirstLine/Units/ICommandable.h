@@ -26,7 +26,7 @@ public:
      * @param Location - Target location for the command
      * @param Target - Optional target actor for the command
      */
-    UFUNCTION(BlueprintNativeEvent, Category = "Command")
+    UFUNCTION(BlueprintNativeEvent,BlueprintCallable, Category = "Command")
     void ExecuteCommand(const FGameplayTag& CommandTag, const FVector& Location, AActor* Target);
 
     /** 
@@ -34,6 +34,6 @@ public:
      * Used to validate available commands
      * @return Container of unit capability tags
      */
-    UFUNCTION(BlueprintNativeEvent, Category = "Command")
+    UFUNCTION(BlueprintNativeEvent,BlueprintCallable, Category = "Command")
     const FGameplayTagContainer GetUnitDefinitionTags() const;
 }; 

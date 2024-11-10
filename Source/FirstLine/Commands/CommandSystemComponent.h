@@ -25,7 +25,7 @@ public:
      * @return Command data if valid command found, nullptr otherwise
      */
     UFUNCTION(BlueprintCallable, Category = "Command")
-    const FCommandData GetAvailableCommand(const TArray<AActor*>& SelectedUnits, AActor* HoveredActor);
+    const FCommandData GetAvailableCommand(const TArray<AActor*>& SelectedUnits, AActor* HoveredActor, const FVector& Location);
 
 protected:
     /** Data table containing all possible commands mapped by command tags */

@@ -2,13 +2,15 @@
 
 
 #include "CommanderPlayerController.h"
-#include "Interface/SelectionComponent.h"
 
-#include "InputActionValue.h"
-#include "EnhancedInputComponent.h"
-#include "Interface/ISelectable.h"
+#include "AbilitySystemComponent.h"
+#include "CommanderPlayerSTate.h"
+#include "Interface/SelectionComponent.h"
+#include "Abilities/GameplayAbilityTypes.h"
+#include "Commands/CommandSystemComponent.h"
 #include "Engine/World.h"
 #include "Engine/LocalPlayer.h" // For DeprojectScreenToWorld
+
 
 ACommanderPlayerController::ACommanderPlayerController()
 {
@@ -20,6 +22,7 @@ ACommanderPlayerController::ACommanderPlayerController()
 
 
 	SelectionComponent = CreateDefaultSubobject<USelectionComponent>(TEXT("SelectionComponent"));
+	CommandSystemComponent= CreateDefaultSubobject<UCommandSystemComponent>(TEXT("CommandSystem"));
 }
 
 void ACommanderPlayerController::Tick(float DeltaTime)
@@ -27,6 +30,8 @@ void ACommanderPlayerController::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	EdgeScroll();
+	UpdateCommandContext();
+
 	if (!MovementVector.IsZero())
 	{
 		if (APawn* ControlledPawn = GetPawn())
@@ -116,4 +121,80 @@ void ACommanderPlayerController::OnSelectReleased()
 	bIsSelecting=false;
 
 	SelectionComponent->EndSelection();
+}
+
+void ACommanderPlayerController::UpdateCommandContext()
+{
+	if (!IsLocalController() || !CommandSystemComponent) return;
+
+	// Reset cursor if no units selected
+	if (SelectionComponent->GetSelectedActors().Num() == 0)
+	{
+		
+		LastCommandData = FCommandData();
+		CurrentMouseCursor = EMouseCursor::Default;
+		
+		return;
+	}
+
+	// Get actor under cursor
+	FHitResult HitResult;
+	GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
+
+	// Get available command based on context
+	const FCommandData CommandData = CommandSystemComponent->GetAvailableCommand(
+		SelectionComponent->GetSelectedActors(), 
+		HitResult.GetActor(),
+		HitResult.Location
+	);
+
+	// Update cursor if command changed
+	if (CommandData.CommandTag != LastCommandData.CommandTag)
+	{
+		LastCommandData = CommandData;
+		if (CommandData.CursorTexture.IsValid())
+		{
+			// Set custom cursor
+			CurrentMouseCursor = EMouseCursor::Custom;
+			
+			//TODO: Set Cursor
+			UE_LOG(LogTemp, Warning, TEXT("Mouse cursor changed"));
+			
+		}
+		else
+		{
+			// Reset to default cursor
+			CurrentMouseCursor = EMouseCursor::Default;
+		}
+	}
+}
+
+void ACommanderPlayerController::OnCommandPressed()
+{
+	if (!IsLocalController() || !CommandSystemComponent || !LastCommandData.CommandTag.IsValid()) return;
+
+	// Get target location/actor
+	FHitResult HitResult;
+	if (GetHitResultUnderCursor(ECC_Visibility, false, HitResult))
+	{
+		// Create event data wrapper
+		UCommandEventDataWrapper* EventDataWrapper = NewObject<UCommandEventDataWrapper>();
+		EventDataWrapper->EventData.TargetLocation = HitResult.Location;
+		EventDataWrapper->EventData.TargetActor = HitResult.GetActor();
+		EventDataWrapper->EventData.SelectedUnits = SelectionComponent->GetSelectedActors();
+
+		// Trigger ability through GAS
+		if (ACommanderPlayerSTate* PS = GetPlayerState<ACommanderPlayerSTate>())
+		{
+			if (UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent())
+			{
+				FGameplayEventData Payload;
+				Payload.EventTag = LastCommandData.AbilityTriggerTag;
+				Payload.Target = HitResult.GetActor();
+				Payload.OptionalObject = EventDataWrapper;
+
+				ASC->HandleGameplayEvent(LastCommandData.AbilityTriggerTag, &Payload);
+			}
+		}
+	}
 }

@@ -18,6 +18,9 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayTag Command;  // Root tag for all commands
 
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag Command_Move;  // Basic move command
+
 	// Unit capability hierarchy
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayTag Unit;     // Root tag for unit capabilities

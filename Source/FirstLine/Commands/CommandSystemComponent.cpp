@@ -2,6 +2,7 @@
 #include "Units/ICommandable.h"
 #include "Commands/ICommandTarget.h"
 #include "Core/AbilitySystem/FirstLineGameplayTags.h"
+#include "NavigationSystem.h"
 
 UCommandSystemComponent::UCommandSystemComponent()
 {
@@ -16,7 +17,7 @@ void UCommandSystemComponent::BeginPlay()
 } 
 
 
-const FCommandData UCommandSystemComponent::GetAvailableCommand(const TArray<AActor*>& SelectedUnits, AActor* HoveredActor)
+const FCommandData UCommandSystemComponent::GetAvailableCommand(const TArray<AActor*>& SelectedUnits, AActor* HoveredActor, const FVector& Location)
 {
     // Early return if nothing changed (cache hit)
     if (LastHoveredActor == HoveredActor && bIsCacheValid)
@@ -29,10 +30,10 @@ const FCommandData UCommandSystemComponent::GetAvailableCommand(const TArray<AAc
     LastHoveredActor = HoveredActor;
 
     // Validate input
-    if (SelectedUnits.Num() == 0 || !CommandDataTable || !HoveredActor)
+    if (SelectedUnits.Num() == 0 || !CommandDataTable)
     {
-        UE_LOG(LogTemp, Verbose, TEXT("Command System: Invalid input - Units: %d, DataTable: %d, Actor: %d"), 
-            SelectedUnits.Num(), IsValid(CommandDataTable), IsValid(HoveredActor));
+        UE_LOG(LogTemp, Verbose, TEXT("Command System: Invalid input - Units: %d, DataTable: %d"), 
+            SelectedUnits.Num(), IsValid(CommandDataTable));
         return FCommandData();
     }
 
@@ -62,20 +63,25 @@ const FCommandData UCommandSystemComponent::GetAvailableCommand(const TArray<AAc
         }
     }
 
-    // Get available command tags from target
     FGameplayTagContainer CommandTags;
-    if (HoveredActor->Implements<UCommandTarget>())
+
+    if (HoveredActor && HoveredActor->Implements<UCommandTarget>())
     {
+        // Get available command tags from target
         CommandTags = ICommandTarget::Execute_GetAvailableCommandTags(HoveredActor);
-        UE_LOG(LogTemp, Verbose, TEXT("Command System: Target %s provides commands: %s"), 
-            *HoveredActor->GetName(), *CommandTags.ToString());
     }
     else
     {
-        // Default to move command for non-interactive actors/ground
-        CommandTags.AddTag(FFirstLineGameplayTags::Get().Command);
-        UE_LOG(LogTemp, Verbose, TEXT("Command System: Using default move command for %s"), 
-            *HoveredActor->GetName());
+        // No actor or non-interactive actor - check navmesh for move command
+        UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+        if (NavSys)
+        {
+            FNavLocation NavLoc;
+            if (NavSys->ProjectPointToNavigation(Location, NavLoc))
+            {
+                CommandTags.AddTag(FFirstLineGameplayTags::Get().Command_Move);
+            }
+        }
     }
 
     // Find first valid command

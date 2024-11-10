@@ -31,5 +31,10 @@ void FFirstLineGameplayTags::InitializeNativeTags()
 		FString("Ability that automatically retriggers after cooldown")
 	);
 
+	GameplayTags.Command_Move = Manager.AddNativeGameplayTag(
+		FName("Command.Move"),
+		FString("Command to move units to location")
+	);
+
 	Manager.DoneAddingNativeTags();
 }
