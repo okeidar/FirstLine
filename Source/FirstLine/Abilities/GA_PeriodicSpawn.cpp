@@ -6,6 +6,7 @@
 #include "EngineUtils.h"
 #include "NavigationSystem.h"
 #include "AbilitySystem/FirstLineGameplayTags.h"
+#include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "FirstLine/Core/AbilitySystem/CommanderAttributeSet.h"
 
 UGA_PeriodicSpawn::UGA_PeriodicSpawn()
@@ -74,11 +75,8 @@ void UGA_PeriodicSpawn::ActivateAbility(
 	}
 
 	// Spawn the peasant
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = ActorInfo->OwnerActor.Get();
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	APawn* NewPeasant = GetWorld()->SpawnActor<APawn>(PeasantClass, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
+	APawn* NewPeasant = UAIBlueprintHelperLibrary::SpawnAIFromClass(GetWorld(),PeasantClass,nullptr, SpawnLocation, FRotator::ZeroRotator, true, ActorInfo->OwnerActor.Get());
 
 
 

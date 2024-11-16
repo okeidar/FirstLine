@@ -10,7 +10,7 @@ public class FirstLine : ModuleRules
 	
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput","NavigationSystem","GameplayAbilities", "GameplayTags", "GameplayTasks"  });
 
-		PrivateDependencyModuleNames.AddRange(new string[] {  });
+		PrivateDependencyModuleNames.AddRange(new string[] { "AIModule" });
 		PublicIncludePaths.AddRange(new string[]{"FirstLine/Core","FirstLine"});
 
 		// Uncomment if you are using Slate UI
