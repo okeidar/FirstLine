@@ -8,6 +8,7 @@
 #include "AbilitySystem/FirstLineGameplayTags.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "FirstLine/Core/AbilitySystem/CommanderAttributeSet.h"
+#include "GameFramework/PlayerState.h"
 
 UGA_PeriodicSpawn::UGA_PeriodicSpawn()
 {
@@ -74,11 +75,30 @@ void UGA_PeriodicSpawn::ActivateAbility(
 		SpawnLocation = TownHallRef->GetActorLocation() + RandomOffset;
 	}
 
-	// Spawn the peasant
+	// Get the player state that owns this ability
+	APlayerState* PlayerState = Cast<APlayerState>(ActorInfo->OwnerActor.Get());
+	if (!PlayerState)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
 
-	APawn* NewPeasant = UAIBlueprintHelperLibrary::SpawnAIFromClass(GetWorld(),PeasantClass,nullptr, SpawnLocation, FRotator::ZeroRotator, true, ActorInfo->OwnerActor.Get());
+	// Spawn the peasant with the correct owner
+	APawn* NewPeasant = UAIBlueprintHelperLibrary::SpawnAIFromClass(
+		GetWorld(),
+		PeasantClass,
+		nullptr,
+		SpawnLocation, 
+		FRotator::ZeroRotator,
+		true,
+		PlayerState // Pass the PlayerState as the instigator
+	);
 
-
+	// Ensure the AI controller gets the correct player state
+	if (AController* AIController = NewPeasant->GetController())
+	{
+		AIController->SetPlayerState(PlayerState);
+	}
 
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }

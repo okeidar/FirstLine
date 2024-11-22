@@ -30,9 +30,16 @@ public:
 	ATTRIBUTE_ACCESSORS(UCommanderAttributeSet, CurrentPopulation)
     ATTRIBUTE_ACCESSORS(UCommanderAttributeSet, MaxPopulation)
 
+	//Resources
+    ATTRIBUTE_ACCESSORS(UCommanderAttributeSet, Wood)
+
 protected:
+	
 	UFUNCTION()
 	virtual void OnRep_CurrentPopulation(const FGameplayAttributeData& OldValue);
+	
+	UFUNCTION()
+	virtual void OnRep_Wood(const FGameplayAttributeData& OldValue);
 
 	UFUNCTION()
 	virtual void OnRep_MaxPopulation(const FGameplayAttributeData& OldValue);
@@ -43,9 +50,9 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Attributes", ReplicatedUsing = OnRep_MaxPopulation,meta=(AllowPrivateAccess=true))
 	FGameplayAttributeData MaxPopulation;
-
-
-
+	
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes", ReplicatedUsing = OnRep_Wood,meta=(AllowPrivateAccess=true))
+	FGameplayAttributeData Wood;
 
 };
 

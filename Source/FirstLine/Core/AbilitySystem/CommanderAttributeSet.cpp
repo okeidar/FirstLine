@@ -15,11 +15,17 @@ void UCommanderAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCommanderAttributeSet, CurrentPopulation, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCommanderAttributeSet, MaxPopulation, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UCommanderAttributeSet, Wood, COND_None, REPNOTIFY_Always);
 }
 
 void UCommanderAttributeSet::OnRep_CurrentPopulation(const FGameplayAttributeData& OldValue)
 {	
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCommanderAttributeSet, CurrentPopulation, OldValue);
+}
+
+void UCommanderAttributeSet::OnRep_Wood(const FGameplayAttributeData& OldValue)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UCommanderAttributeSet, Wood, OldValue);
 }
 
 void UCommanderAttributeSet::OnRep_MaxPopulation(const FGameplayAttributeData& OldValue)
