@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
 #include "GameplayTagContainer.h"
+#include "Buildings/BuildingBase.h"
 #include "FirstLine/Core/AbilitySystem/FirstLineGameplayTags.h"
 #include "CommandTypes.generated.h"
 
@@ -26,6 +27,10 @@ struct FIRSTLINE_API FCommandData : public FTableRowBase
     // The gameplay tag that will trigger the ability
     UPROPERTY(EditDefaultsOnly, Category = "Command")
     FGameplayTag AbilityTriggerTag;
+
+    // Optional building tag for build commands
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Command|Building")
+    FGameplayTag BuildingTypeTag;
 };
 
 USTRUCT(BlueprintType)
@@ -51,4 +56,18 @@ class FIRSTLINE_API UCommandEventDataWrapper : public UObject
 public:
     UPROPERTY(BlueprintReadWrite)
     FCommandEventData EventData;
+};
+
+USTRUCT()
+struct FBuildCommandData
+{
+    GENERATED_BODY()
+
+    // The building class to construct
+    UPROPERTY(EditDefaultsOnly)
+    TSubclassOf<ABuildingBase> BuildingClass;
+
+    // Command tag for this building type
+    UPROPERTY(EditDefaultsOnly)
+    FGameplayTag BuildingCommandTag;
 }; 

@@ -51,6 +51,10 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void OnCommandPressed();
 
+	
+	UFUNCTION(BlueprintCallable)
+	void ExecuteCustomCommand(FCommandData Command);
+
 	/** Component that handles all selection logic */
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USelectionComponent> SelectionComponent;
@@ -65,6 +69,12 @@ protected:
 	// Cache the last command data to avoid unnecessary cursor updates
 	UPROPERTY()
 	FCommandData LastCommandData;
+
+	UPROPERTY()
+	bool bIsBuildingMode = false;
+
+	void SetBuildingMode(bool bEnabled);
+	bool IsBuildingMode() const { return bIsBuildingMode; }
 
 private:
 

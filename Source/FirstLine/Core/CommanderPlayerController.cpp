@@ -198,3 +198,25 @@ void ACommanderPlayerController::OnCommandPressed()
 		}
 	}
 }
+
+void ACommanderPlayerController::ExecuteCustomCommand(FCommandData Command)
+{
+	if (!IsLocalController() || !CommandSystemComponent || !Command.CommandTag.IsValid()) return;
+		// Create event data wrapper
+		UCommandEventDataWrapper* EventDataWrapper = NewObject<UCommandEventDataWrapper>();
+		EventDataWrapper->EventData.SelectedUnits = SelectionComponent->GetSelectedActors();
+
+		// Trigger ability through GAS
+		if (ACommanderPlayerSTate* PS = GetPlayerState<ACommanderPlayerSTate>())
+		{
+			if (UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent())
+			{
+				FGameplayEventData Payload;
+				Payload.EventTag = Command.AbilityTriggerTag;
+				Payload.OptionalObject = EventDataWrapper;
+
+				ASC->HandleGameplayEvent(Command.AbilityTriggerTag, &Payload);
+			}
+		}
+	
+}
