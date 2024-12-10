@@ -44,19 +44,44 @@ void ABuildingBase::StartConstruction_Implementation(APawn* Worker)
     if (GetLocalRole() != ROLE_Authority) return;
 
     AssignedWorker = Worker;
-    BuildingState = EBuildingState::Building;
+    BuildingState = EBuildingState::Foundation;
     OnRep_BuildingState();
 }
 
 void ABuildingBase::UpdateConstruction_Implementation(float DeltaTime)
 {
-    if (GetLocalRole() != ROLE_Authority || BuildingState != EBuildingState::Building) return;
+    IConstructable::UpdateConstruction_Implementation(DeltaTime);
+}
 
-    ConstructionProgress += DeltaTime / ConstructionTime;
+void ABuildingBase::UpdateConstructionProgress(float DeltaProgress)
+{
+    if (GetLocalRole() != ROLE_Authority || BuildingState == EBuildingState::Complete) 
+        return;
+
+    float OldProgress = ConstructionProgress;
+    ConstructionProgress = FMath::Clamp(ConstructionProgress + DeltaProgress, 0.0f, 1.0f);
+    
+    // Calculate and update building stage
+    EBuildingState NewState = BuildingState;
     if (ConstructionProgress >= 1.0f)
     {
-        ConstructionProgress = 1.0f;
-        BuildingState = EBuildingState::Complete;
+        NewState = EBuildingState::Complete;
+    }
+    else
+    {
+        // Determine stage based on progress
+        if (ConstructionProgress < 0.2f) NewState = EBuildingState::Foundation;
+        else if (ConstructionProgress < 0.4f) NewState = EBuildingState::Framework;
+        else if (ConstructionProgress < 0.6f) NewState = EBuildingState::Structure;
+        else if (ConstructionProgress < 0.8f) NewState = EBuildingState::Walls;
+        else NewState = EBuildingState::Finishing;
+    }
+
+    // If stage changed, update state and notify blueprint
+    if (NewState != BuildingState)
+    {
+        BuildingState = NewState;
+        OnConstructionStateChanged(BuildingState);
         OnRep_BuildingState();
     }
 }

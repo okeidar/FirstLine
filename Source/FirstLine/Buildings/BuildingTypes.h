@@ -23,6 +23,14 @@ struct FIRSTLINE_API FBuildingData : public FTableRowBase
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Building")
     float ConstructionTime = 10.0f;
 
+    // Display name for UI
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Building|UI")
+    FText DisplayName;
+
+    // Description for UI
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Building|UI")
+    FText Description;
+
     FBuildingData()
         : ConstructionTime(10.0f)
     {
