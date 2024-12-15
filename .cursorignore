@@ -1,6 +1,37 @@
-/.vs
-/.vscode
-/Content
-/DerivedDataCache
-/Intermediate
-/Saved
+# Build artifacts
+Binaries/
+Intermediate/
+Saved/
+DerivedDataCache/
+
+# Generated files
+*.generated.h
+*.generated.cpp
+
+# Visual Studio files
+.vs/
+*.sln
+*.suo
+*.user
+*.userosscache
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.opendb
+
+# Unreal Engine generated
+Build/
+Content/
+*.uproject
+*.uasset
+*.ubulk
+*.umap
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
