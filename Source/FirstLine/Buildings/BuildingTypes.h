@@ -31,6 +31,14 @@ struct FIRSTLINE_API FBuildingData : public FTableRowBase
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Building|UI")
     FText Description;
 
+    // Icon for the building menu
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Building|UI")
+    UTexture2D* MenuIcon;
+
+    // Building category tag (determines building type and who can build it)
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Building")
+    FGameplayTag CategoryTag;
+
     FBuildingData()
         : ConstructionTime(10.0f)
     {

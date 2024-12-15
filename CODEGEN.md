@@ -20,6 +20,21 @@ We are developing a game in Unreal Engine 5. and as such, a design section is in
 ## General Coding Guidelines
 * Add code only to the "Source/FirstLine" folder.
 * Add code to the appropriate subfolder.
+* For C++ classes:
+    - Always create both header (.h) and implementation (.cpp) files
+    - Headers should only declare the interface
+    - All implementation should go in cpp files
+    - Remember to include minimal required headers in .h files
+    - Place implementation-only includes in cpp files
+    - Check and update module dependencies in Build.cs when:
+        * Adding new includes
+        * Using features from other modules
+        * Creating new functionality that requires engine modules
+    - Common modules to check for:
+        * UMG for widgets
+        * AIModule for AI features
+        * GameplayAbilities for GAS
+        * GameplayTags for tags
 * The project is written in c++ and blueprint. maintain a proper and clever balance between the two.
 * if a bluprint is to be created, write the instructions for the blueprint in a file under the "Blueprints" folder.
 * when writing c++ code, consider if it should be used by a blueprint, and if so, add propper macros.
@@ -32,6 +47,7 @@ We are developing a game in Unreal Engine 5. and as such, a design section is in
 ## Specific coding guidelines:
 * create a propper environment using cursor ignore files to clean the codebase from noise.
 * the design section should be always located last in the file.
+* the codebase is compiled and run through Rider IDE for better integration.
 
 ## Code Analysis Guidelines
 * Only document features that are clearly implemented in the code
@@ -39,11 +55,113 @@ We are developing a game in Unreal Engine 5. and as such, a design section is in
 * Avoid making assumptions about gameplay elements not yet implemented
 * If a system is partially implemented, document only the implemented parts
 * When in doubt, be conservative in feature description
+* Do not add new systems or properties without explicit requirements
+* When suggesting changes:
+    - Only modify what's specifically requested
+    - Don't introduce new concepts not mentioned in requirements
+    - If something seems missing, ask for clarification instead of speculating
+* For gameplay tags and similar systems:
+    - Only document/use tags that exist in the codebase
+    - Don't create new tag hierarchies without requirements
+    - If new tags are needed, explicitly ask about the intended structure
 
+## Blueprint Implementation Guidelines
+* Blueprint implementations should be documented in the "Blueprints" folder
+* Each blueprint should have its own .md file with clear instructions
+* Blueprint documentation structure:
+    - Parent Class & Description
+    - Designer View:
+        * Complete hierarchy with exact names
+        * For each component:
+            - Direct properties (size, color, font, etc.)
+            - Parent slot settings (alignment, padding, size rule)
+            - Specify if settings are on component or its slot
+    - Variables:
+        * Name and type
+        * Category and access specifiers
+        * Default values and metadata
+    - Event Graph:
+        * Function purpose and parameters
+        * Step by step node connections
+        * Input/output pins to connect
+        * Execution flow description
+* Widget Blueprint specifics:
+    - Component sizes are direct properties (not in size box)
+    - Layout container slots control:
+        * Size Rule (Auto/Fill)
+        * Alignment
+        * Padding
+    - Document which settings are in the component vs its slot
+* AI behavior (tasks, services, decorators) should be implemented in Blueprint unless:
+  - It requires complex C++ integration
+  - It needs to handle C++ delegates/events
+  - Performance is critical
+* Always explain the reasoning when choosing C++ over Blueprint implementation
+* When documenting blueprint requirements:
+    - Stick to what's needed by the current phase
+    - Don't add "nice to have" features
+    - Focus on core functionality first
+* Blueprint documentation must include:
+    - Complete event/function chains from input to output
+    - All required variables and their types
+    - UI parent-child relationships and anchoring
+    - Event bindings and delegations
+    - Integration points with existing systems
+* Design considerations:
+    - Consider using construction/spawn time setup instead of post-construction initialization when possible
+    - Document which variables should be set during actor/component/widget construction
+    - For any object, consider its full lifecycle (creation, usage, cleanup)
+    - Use ExposeOnSpawn when appropriate for cleaner dependency injection
+
+## Implementation Checklist
+* For each phase:
+    1. List all systems affected by the changes
+    2. Document dependencies between different parts
+    3. Specify the order of implementation
+    4. Implement all required dependencies first:
+        - Data structures and types
+        - Interfaces
+        - Base classes
+        - Data assets and tables
+    5. Include simple sanity cases for each feature
+    6. Review and clean up:
+        - Remove redundant/duplicate files from previous iterations
+        - Update implementation plan to reflect current requirements only
+        - Keep only the most recent version of each blueprint instruction
+        - Document which existing files need modification vs. which are new
+
+## Testing Guidelines
+* Each blueprint instruction should include:
+    - Prerequisites (maps, actors, data assets needed)
+    - Step by step test procedure
+    - Expected results for each step
+    - Common failure cases to check
+    - Multiplayer considerations if relevant
 
 ### Phase 1:
 * prepare environment and update the design section to specify what is already in the codebase. the design section should be in high level and describe the intent. such as "The player can select units by clicking on them or by marquee selection" and "The player can issue commands to selected units by right clicking on a context sensitive locations such as the ground to move them or a resource to collect from".
 * create whatis defined in the specific coding guidelines 
+
+### Phase 2:
+Prototyping the building system.
+assumptions (current state of the codebase):
+1. building placement and targeting is already implemented.
+2. right now the "build" command is issued by a debug key (b) in the controller blueprint.
+3. the build command triggers a gameplay ability "GA_BuildCommand" that is implemented as a blueprint.
+4. The building command is passing a hardcoded key for the building type that is used to get the details from a data table.
+5. the selected peasant recievess a "Execute Command" event from the gameplay ability. execute command is implemented in the ICommandable interface.
+6. execute command triggers a flow that replaces the peasants behavior tree with a new one that is responsible for building the building.
+7. A test building blueprint is implemented (with static visual representation and prints for the building stages).
+8. When the building is complete, the bahavior tree remains active and the peasant is stuck around the building. (undesired behavior)
+requirements:
+1. the building command should be issued by selecting the building from a menu.
+2. the menu should appear at the bottom of the screen when a peasant is selected.
+3. the menu should have a scrollable list of all the buildings that can be built by the peasant.
+4. the menu shouldnt interfere with normal gameplay such as unit selection or command selection.
+5. when the building is placed, the resource cost should be deducted from the players resources.
+6. when the building is complete, the peasant should be released from the bahavior tree and should return to its normal behavior.
+
+
 
 ## Design
 
@@ -71,6 +189,20 @@ The codebase implements a city building game with RTS-style controls:
 ### Town Management
 - The Town Hall periodically produces new peasants
 - Population is managed through a maximum cap system
+
+### Data Management considerations:
+    - Consider data source and ownership:
+        * Is the data likely to change?
+        * Is it used in multiple places?
+        * Should it be configurable without code changes?
+    - Options for data storage:
+        * Variables in components (for component-specific, unchanging data)
+        * Data assets (for shared, configurable data)
+        * Game instance/subsystems (for runtime, global data)
+    - Prefer external data sources when:
+        * Data needs to be modified without code changes
+        * Same data is used across multiple components
+        * Data and logic separation is important
 
 
 

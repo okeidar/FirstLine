@@ -8,7 +8,7 @@ public class FirstLine : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput","NavigationSystem","GameplayAbilities", "GameplayTags", "GameplayTasks"  });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput","NavigationSystem","GameplayAbilities", "GameplayTags", "GameplayTasks" ,"UMG" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "AIModule" });
 		PublicIncludePaths.AddRange(new string[]{"FirstLine/Core","FirstLine"});
